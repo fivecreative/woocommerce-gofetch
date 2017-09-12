@@ -22,11 +22,16 @@
 	if(!defined('ABSPATH')) exit; // NO GETTING HERE
 		
 	// Defines our plugin path directory and url
-	define('WCGO_PLUGIN_URL', plugin_dir_url( __FILE__ ));
-	define('WCGO_PLUGIN_PATH', plugin_dir_path( __FILE__ ));
+	define('WCGO_PLUGIN_URL', plugin_dir_url(__FILE__));
+	define('WCGO_PLUGIN_PATH', plugin_dir_path(__FILE__));
 	
-	// Required our WCGO Class
+	// Requires our classes
 	require(WCGO_PLUGIN_PATH.'class-wcgo.php');
+	require(WCGO_PLUGIN_PATH.'class-wcgo-updater.php');
+
+	// Initiates our WCGO Updater class
+	if(is_admin())
+		WCGO_Updater(__FILE__, 'fivecreative', 'woocommerce-gofetch', '');
 	
 	/**
 	 * Hooks
