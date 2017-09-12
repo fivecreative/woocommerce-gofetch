@@ -10,7 +10,7 @@
 * Plugin Name: WooCommerce GoFetch
 * Plugin URI: https://fivecreative.com.au/
 * Description: Allows your customers to use gofetch as their delivery option
-* Version: 1.0
+* Version: 1.0.1
 * Author: FIVE Creative
 * Author URI: https://fivecreative.com.au
 * Requires at least: 4.8.1
