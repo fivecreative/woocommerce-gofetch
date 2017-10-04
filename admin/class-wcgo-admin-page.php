@@ -778,7 +778,7 @@
 			}
 			
 			// Returns our settings
-			return apply_filters('woocommerce_get_settings_'.$this->id, $settings, $current_section);
+			return apply_filters('woocommerce_get_settings_'.$this->id, $settings, (isset($current_section)) ? $current_section : '');
 			
 		}
 		

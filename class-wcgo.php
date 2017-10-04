@@ -2,7 +2,7 @@
 /**
 * WCGO Main class
 *
-* @version 	1.0
+* @version 	1.0.2
 * @since 	1.0
 * @author 	FIVE
 * @package 	GoFetch/Classes
@@ -74,20 +74,20 @@
 		 */
 		protected function get_endpoint($token = false) {
 			
+			// If test mode and token
+			if($this->test_mode() && $token)
+				return 'http://go-fetch.staging.c66.me/public_api/v1';
+				
+			// If live token
+			if(!$this->test_mode() && $token)
+				return 'https://go-fetch.com.au/public_api/v1';
+				
 			// Test mode
-			if($this->test_mode()) {
+			if($this->test_mode())
+				return 'http://go-fetch.staging.c66.me/api/v1';
 				
-				// If token
-				if($token)
-					return 'http://test.go-fetch.com.au/public_api/v1';
-				else
-					return 'http://go-fetch.staging.c66.me/api/v1';
-				
-			} else {
-				
-				return 'https://go-fetch.com.au/api/v1';
-				
-			}
+			// Live mode
+			return 'https://go-fetch.com.au/api/v1';
 			
 		}
 		
@@ -329,6 +329,12 @@
 					
 				} else {
 					
+					$contacts = array(
+						
+						'' => __('&mdash; Select a pickup contact.', 'five'),
+						
+					);
+					
 					// Populates our contacts
 					foreach($body['contacts'] as $contact) {
 						
@@ -396,13 +402,19 @@
 					
 					$ccs = array(
 						
-						'' => __('No credit cards found within gofetch.', 'five'),
+						'' => __('&mdash; No credit cards found within gofetch.', 'five'),
 						
 					);
 					
 					return $ccs;
 					
 				} else {
+					
+					$ccs = array(
+						
+						'' => __('&mdash; Select a credit card to be used for pickups.', 'five'),
+						
+					);
 					
 					// Populates our contacts
 					foreach($body['credit_cards'] as $cc) {
@@ -1182,6 +1194,8 @@
 				'body' => $body,
 				
 			));
+			
+			echo '<pre>'; print_r($request); echo '</pre>'; exit;
 			
 			// Checks the request
 			if(wp_remote_retrieve_response_code($request) != 201) {

@@ -70,7 +70,7 @@
 					
 				?>
 				
-					<option value="<?php echo $value ?>" <?php selected($selected, $value, true) ?>><?php echo $label; ?></option>
+					<option value="<?php echo $value ?>"><?php echo $label; ?></option>
 				
 				<?php endforeach; ?>
 				

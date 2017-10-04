@@ -2,7 +2,7 @@
 /**
 * Our GoFetch Shipping Method Class
 *
-* @version 	1.0
+* @version 	1.0.2
 * @since 	1.0
 * @author 	FIVE
 * @package 	GoFetch/Classes
@@ -111,7 +111,7 @@
 		 * @param array $package
 		 * @return void
 		 */
-		public function calculate_shipping($package) {
+		public function calculate_shipping($package = array()) {
 			
 			// If we can calculate shipping
 			if(!WCGO()->can_calculate_shipping())
