@@ -172,6 +172,7 @@
 			'placeholder' => __('Start typing to search address...', 'five'),
 			'priority' => 115,
 			'required' => true,
+			'class' => array('form-row form-row-wide'),
 			
 		);
 		
@@ -182,6 +183,7 @@
 			'placeholder' => __('Start typing to search address...', 'five'),
 			'priority' => 85,
 			'required' => true,
+			'class' => array('form-row form-row-wide'),
 			
 		);
 		
