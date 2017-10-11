@@ -2,7 +2,7 @@
 /**
 * Deals with our global woocommerce settings page
 *
-* @version 	1.0
+* @version 	1.0.3.2
 * @since 	1.0
 * @author 	FIVE
 * @package 	GoFetch/Admmin
@@ -701,7 +701,7 @@
 					array(
 						
 						'title' => __('Server Side Google Maps API Key', 'five'),
-						'desc' => sprintf(__('<p>Your Google Maps API Key - Server Side. To get your google maps API Key go <a href="https://console.cloud.google.com/apis/dashboard" target="_blank">here</a>.<br>Please ensure that you have enabled the following apis: Google Maps JavaScript API, Google Maps Distance Matrix API, Google Maps Geocoding API and Google Places API Web Service.<br>If you are using a restriction for your API key, this key needs to be restricted by IP address.<br>You will need to whitelist the following IP: <strong>%s</strong></p>', 'five'), $_SERVER['SERVER_ADDR']),
+						'desc' => sprintf(__('<p>Your Google Maps API Key - Server Side. To get your google maps API Key go <a href="https://console.cloud.google.com/apis/dashboard" target="_blank">here</a>.<br>Please ensure that you have enabled the following apis: Google Maps JavaScript API, Google Maps Distance Matrix API, Google Maps Geocoding API and Google Places API Web Service.<br>If you are using a restriction for your API key, this key needs to be restricted by IP address.<br>You will need to whitelist the following IP:<br><code>%s</code></p>', 'five'), $_SERVER['SERVER_ADDR']),
 						'type' => 'text',
 						'id' => 'wcgo_gmaps_api_key',
 						'css' => 'width: 250px;',
@@ -711,7 +711,7 @@
 					array(
 						
 						'title' => __('Browser Side Google Maps API Key', 'five'),
-						'desc' => sprintf(__('<p>Your Google Maps API Key - Browser Key. To get your google maps API Key go <a href="https://console.cloud.google.com/apis/dashboard" target="_blank">here</a>.<br>Please ensure that you have enabled the following apis: Google Maps JavaScript API, Google Maps Distance Matrix API, Google Maps Geocoding API and Google Places API Web Service.<br>If you are using a restriction for your API key, this key needs to be restricted by HTTP Referrer.<br>You will need to whitelist the following referrer: <strong>%s</strong></p>', 'five'), str_replace(array('http://', 'https://'), '', home_url().'/*')),
+						'desc' => sprintf(__('<p>Your Google Maps API Key - Browser Key. To get your google maps API Key go <a href="https://console.cloud.google.com/apis/dashboard" target="_blank">here</a>.<br>Please ensure that you have enabled the following apis: Google Maps JavaScript API, Google Maps Distance Matrix API, Google Maps Geocoding API and Google Places API Web Service.<br>If you are using a restriction for your API key, this key needs to be restricted by HTTP Referrer.<br>You will need to whitelist the following referrers:<br>%s</p>', 'five'), $this->get_google_api_keys_referrers()),
 						'type' => 'text',
 						'id' => 'wcgo_gmaps_api_key_client',
 						'css' => 'width: 250px;',
@@ -779,6 +779,31 @@
 			
 			// Returns our settings
 			return apply_filters('woocommerce_get_settings_'.$this->id, $settings, (isset($current_section)) ? $current_section : '');
+			
+		}
+		
+		/**
+		 * Gets the referrers we need to whitelist for our google maps api browser side.
+		 * 
+		 * @access public
+		 * @return string
+		 */
+		public function get_google_api_keys_referrers() {
+			
+			// Gets the website domain
+			$domain = str_replace(array('http://', 'https://'), '', site_url());
+			
+			// The referrers
+			$referrers = array(
+				
+				$domain.'/*',
+				'*.'.$domain.'/*',
+				'*'.$domain.'/*'
+				
+			);
+			
+			// Returns them imploded for our description
+			return '<code>'.trim(implode('</code><br><code>', $referrers)).'</code>';
 			
 		}
 		
