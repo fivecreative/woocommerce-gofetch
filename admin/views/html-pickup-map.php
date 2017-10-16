@@ -5,7 +5,7 @@
 * @version 	1.0
 * @since 	1.0
 * @author 	FIVE
-* @package 	WCGO/Admin/Templates
+* @package 	GoFetch/Admin/Templates
 */
 
 	if(!defined('ABSPATH')) exit; // NO GETTING HERE
