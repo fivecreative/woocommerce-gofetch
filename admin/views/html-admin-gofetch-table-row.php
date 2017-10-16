@@ -2,7 +2,7 @@
 /**
 * Displays the row for an order on gofetch order table
 *
-* @version 	1.0
+* @version 	1.0.4
 * @since 	1.0
 * @author 	FIVE
 * @package 	GoFetch/Admin/Templates
@@ -66,11 +66,14 @@
 				
 				<?php
 					
+					// Gets the selected delivery date for this order if set
+					$selected_delivery_date = wcgo_get_order_chosen_delivery_date($order_id);
+					
 					foreach(wcgo_get_booking_delivery_dates() as $value => $label) :
 					
 				?>
 				
-					<option value="<?php echo $value ?>"><?php echo $label; ?></option>
+					<option value="<?php echo $value ?>" <?php if($selected_delivery_date) { selected($selected_delivery_date->format('Y-m-d'), $value, true); } ?>><?php echo $label; ?></option>
 				
 				<?php endforeach; ?>
 				

@@ -2,7 +2,7 @@
 /**
 * WCGO Main class
 *
-* @version 	1.0.2
+* @version 	1.0.4
 * @since 	1.0
 * @author 	FIVE
 * @package 	GoFetch/Classes
@@ -1195,8 +1195,6 @@
 				
 			));
 			
-			echo '<pre>'; print_r($request); echo '</pre>'; exit;
-			
 			// Checks the request
 			if(wp_remote_retrieve_response_code($request) != 201) {
 				
@@ -1271,6 +1269,45 @@
 				
 			}
 		
+		}
+		
+		/**
+		 * Fetches all order ids that gofetch as their shipping method.
+		 * 
+		 * @access public
+		 * @return array
+		 * @since 1.0.4
+		 */
+		public function get_gofetch_order_ids() {
+			
+			global $wpdb;
+			
+			// Does our SQL query
+			$results = $wpdb->get_results($wpdb->prepare("
+			
+				SELECT 		oi.order_id, oi.order_item_name, oi.order_item_type, oim.meta_key, oim.meta_value
+				
+				FROM 		{$wpdb->prefix}woocommerce_order_items AS oi
+				
+				LEFT JOIN	{$wpdb->prefix}woocommerce_order_itemmeta AS oim
+							ON oi.order_item_id = oim.order_item_id
+				
+				WHERE 		oi.order_item_type = %s
+							AND oim.meta_key = %s
+							AND oim.meta_value LIKE %s
+				
+			", "shipping", "method_id", "wc_gofetch:%"));
+			
+			// Nothing found
+			if(empty($results))
+				return array();
+			
+			// Extracts our order_ids
+			$order_ids = wp_list_pluck($results, 'order_id');
+			
+			// Returns our array
+			return $order_ids;
+			
 		}
 		
 	}

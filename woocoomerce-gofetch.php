@@ -2,7 +2,7 @@
 /**
 * WooCommerce GoFetch Integration
 *
-* @version 	1.0.3.2
+* @version 	1.0.3.3
 * @since 	1.0
 * @author 	FIVE
 * @package 	GoFetch
@@ -10,7 +10,7 @@
 * Plugin Name: WooCommerce GoFetch
 * Plugin URI: https://fivecreative.com.au/
 * Description: Allows your customers to use gofetch as their delivery option
-* Version: 1.0.3.2
+* Version: 1.0.3.3
 * Author: FIVE Creative
 * Author URI: https://fivecreative.com.au
 * Requires at least: 4.8.1
@@ -938,6 +938,40 @@
 			return;
 			
 		}
+		
+	}
+	
+	/**
+	 * Gets the delivery date the user has chosen.
+	 * 
+	 * @access public
+	 * @param int $order_id
+	 * @return object
+	 */
+	function wcgo_get_order_chosen_delivery_date($order_id) {
+		
+		// Gets the wcgo_delivery_date form our table
+		$delivery_date = get_post_meta($order_id, 'wcgo_delivery_date', true);
+		
+		// No delivery date
+		if(empty($delivery_date) || strlen($delivery_date) != 8)
+			return false;
+			
+		// Formats our date for datetime
+		$date_formatted = substr($delivery_date, 0, 4).'-'.substr($delivery_date, 4, 2).'-'.substr($delivery_date, 6, 2);
+		
+		// Does our DateTime object
+		try {
+			
+			$datetime = new DateTime($date_formatted.' 00:00:00', new DateTimezone(get_option('timezone_string')));
+			
+		} catch(Exception $e) {
+			
+			return false;
+			
+		}
+		
+		return $datetime;
 		
 	}
 
