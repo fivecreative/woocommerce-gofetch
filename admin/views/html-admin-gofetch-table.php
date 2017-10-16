@@ -2,7 +2,7 @@
 /**
 * Displays our main gofetch table with all orders with gofetch delivery methods etc
 *
-* @version 	1.0
+* @version 	1.0.3.3
 * @since 	1.0
 * @author 	FIVE
 * @package 	WCGO/Admin/Templates
@@ -12,23 +12,16 @@
 	
 	$current_page = !empty($_GET['paged']) ? $_GET['paged'] : 1;
 	
+	// Fetches our order ids with go fetch
+	$order_ids = WCGO()->get_gofetch_order_ids();
+	
 	// Fetches all orders 
 	$args = array(
 		
 		'post_type' => 'shop_order',
 		'posts_per_page' => 30,
 		'post_status' => array_keys(wc_get_order_statuses()),
-		'meta_query' => array(
-			
-			array(
-				
-				'key' => '_shipping_method',
-				'value' => "wc_gofetch",
-				'compare' => 'LIKE',
-				
-			)
-			
-		),
+		'post__in' => $order_ids,
 		'fields' => 'ids',
 		'paged' => $current_page,
 		

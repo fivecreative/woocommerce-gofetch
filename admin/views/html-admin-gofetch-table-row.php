@@ -2,7 +2,7 @@
 /**
 * Displays the row for an order on gofetch order table
 *
-* @version 	1.0.4
+* @version 	1.0.3.3
 * @since 	1.0
 * @author 	FIVE
 * @package 	GoFetch/Admin/Templates

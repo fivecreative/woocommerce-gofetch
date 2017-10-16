@@ -2,7 +2,7 @@
 /**
 * WCGO Main class
 *
-* @version 	1.0.4
+* @version 	1.0.3.3
 * @since 	1.0
 * @author 	FIVE
 * @package 	GoFetch/Classes
