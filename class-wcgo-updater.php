@@ -2,7 +2,7 @@
 /**
 * Handles our plugin updates bypassing the wordpress repository
 *
-* @version 	1.0
+* @version 	1.0.4
 * @since 	1.0
 * @author 	FIVE
 * @package 	GoFetch/Classes
@@ -220,6 +220,7 @@
 			$response->last_updated = $this->github_api_result->published_at;
 			$response->slug = $this->slug;
 			$response->plugin_name  = $this->plugin_data["Name"];
+			$response->name  = $this->plugin_data["Name"];
 			$response->version = $this->github_api_result->tag_name;
 			$response->author = $this->plugin_data["AuthorName"];
 			$response->homepage = $this->plugin_data["PluginURI"];

@@ -2,7 +2,7 @@
 /**
 * Displays our main gofetch table with all orders with gofetch delivery methods etc
 *
-* @version 	1.0.3.3
+* @version 	1.0.4
 * @since 	1.0
 * @author 	FIVE
 * @package 	GoFetch/Admin/Templates
