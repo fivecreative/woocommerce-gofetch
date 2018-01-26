@@ -2,7 +2,7 @@
 /**
 * WooCommerce GoFetch Integration
 *
-* @version 	1.0.4
+* @version 	1.0.5
 * @since 	1.0
 * @author 	FIVE
 * @package 	GoFetch
@@ -10,11 +10,11 @@
 * Plugin Name: WooCommerce GoFetch
 * Plugin URI: https://fivecreative.com.au/
 * Description: Allows your customers to use gofetch as their delivery option
-* Version: 1.0.4
+* Version: 1.0.5
 * Author: FIVE Creative
 * Author URI: https://fivecreative.com.au
 * Requires at least: 4.8.1
-* Tested up to: 4.8.1
+* Tested up to: 4.9.2
 * Text Domain: five
 *
 */
@@ -843,13 +843,25 @@
 			),
 			'orderby' => 'date',
 			'order' => 'ASC',
-			'posts_per_page' => 1,
+			'posts_per_page' => -1,
 			
 		));
 		
 		$dates = array();
 		
 		$first_order = wc_get_order(array_shift($q->posts));
+		
+		// Ensures we get a valid order as the first
+		while(!$first_order) {
+			
+			// No more order ids
+			if(empty($q->posts))
+				return array();
+				
+			$first_order = wc_get_order(array_shift($q->posts));
+			
+		}
+		
 		$first_order_date_time = new DateTime($first_order->get_date_created()->format('Y-m-d H:i:s'), new DateTimezone(WCGO()->get_timezone()));
 		$this_month = new DateTime('now', new DateTimezone(WCGO()->get_timezone()));
 		$this_month->modify('first day of this month');
