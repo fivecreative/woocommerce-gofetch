@@ -2,7 +2,7 @@
 /**
 * WooCommerce GoFetch Integration
 *
-* @version 	1.0.5
+* @version 	1.0.6
 * @since 	1.0
 * @author 	FIVE
 * @package 	GoFetch
@@ -10,7 +10,7 @@
 * Plugin Name: WooCommerce GoFetch
 * Plugin URI: https://fivecreative.com.au/
 * Description: Allows your customers to use gofetch as their delivery option
-* Version: 1.0.5
+* Version: 1.0.6
 * Author: FIVE Creative
 * Author URI: https://fivecreative.com.au
 * Requires at least: 4.8.1
@@ -57,6 +57,7 @@
 	add_filter('woocommerce_checkout_fields', 'wcgo_checkout_fields', 10, 1); // Adds our address search checkout field.
 	add_filter('woocommerce_calculated_total', 'wcgo_add_delivery_surcharge_total', 10, 2); // Adds our delivery date surcharge to the cart total.
 	add_filter('woocommerce_get_order_item_totals', 'wcgo_add_order_totals_row_delivery_date', 10, 3); // Adds our delivery date to our order totals row.
+	add_filter('woocommerce_cart_shipping_packages', 'wcgo_add_delivery_date_to_shipping_packages', 10, 1); // Ensures we include our selected delivery date in oru shipping packages to avoid caching.
 	
 	
 	
@@ -984,6 +985,36 @@
 		}
 		
 		return $datetime;
+		
+	}
+	
+	/**
+	 * Adds our selected delivery date to the shipping package to make the cache invalid.
+	 * 
+	 * @access public
+	 * @param mixed $packages
+	 * @return array
+	 */
+	function wcgo_add_delivery_date_to_shipping_packages($packages) {
+		
+		// If the user is able to select the date
+		if(get_option('wcgo_enable_delivery_choice', 'no') != 'yes' || empty($_POST['post_data']))
+			return $packages;
+			
+		$data = array();
+		parse_str($_POST['post_data'], $data);
+		
+		if(empty($data['wcgo-delivery-date']))
+			return $packages;
+			
+		// Appends the delivery date to our package
+		foreach($packages as $i => $package) {
+			
+			$packages[$i]['destination']['wcgo_delivery_date'] = $data['wcgo-delivery-date'];
+			
+		}
+		
+		return $packages;
 		
 	}
 

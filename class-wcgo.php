@@ -2,7 +2,7 @@
 /**
 * WCGO Main class
 *
-* @version 	1.0.4
+* @version 	1.0.6
 * @since 	1.0
 * @author 	FIVE
 * @package 	GoFetch/Classes
@@ -72,22 +72,22 @@
 		 * @access protected
 		 * @return string
 		 */
-		protected function get_endpoint($token = false) {
+		protected function get_endpoint($token = false, $api_version = 'v1') {
 			
 			// If test mode and token
 			if($this->test_mode() && $token)
-				return 'http://go-fetch.staging.c66.me/public_api/v1';
+				return "http://go-fetch.staging.c66.me/public_api/$api_version";
 				
 			// If live token
 			if(!$this->test_mode() && $token)
-				return 'https://go-fetch.com.au/public_api/v1';
+				return "https://go-fetch.com.au/public_api/$api_version";
 				
 			// Test mode
 			if($this->test_mode())
-				return 'http://go-fetch.staging.c66.me/api/v1';
+				return "http://go-fetch.staging.c66.me/api/$api_version";
 				
 			// Live mode
-			return 'https://go-fetch.com.au/api/v1';
+			return "https://go-fetch.com.au/api/$api_version";
 			
 		}
 		
@@ -697,19 +697,28 @@
 		 * @param int $weight
 		 * @return int
 		 */
-		public function get_package_cost($distance, $weight) {
+		public function get_package_cost($distance, $weight = 0, $delivery_datetime = '') {
 			
-			// Does our request
-			$request = wp_remote_get(add_query_arg(array(
+			// Builds our request params
+			$body = array(
 				
 				'distance_meters' => $distance,
-				'item_weight' => $weight,
-				'lat' => $this->get_pickup_lat(),
-				'lon' => $this->get_pickup_lng(),
 				'suburb_name' => $this->get_pickup_suburb(),
 				'postcode' => $this->get_pickup_postcode(),
+				'lat' => $this->get_pickup_lat(),
+				'lon' => $this->get_pickup_lng(),
+				'deliver_by' => $delivery_datetime,
 				
-			), $this->get_endpoint().'/jobs/calculate.json'), array(
+			);
+			
+			// Calculate by weight or item type id
+			if(!empty($weight))
+				$body['item_weight'] = $weight;
+			else
+				$body['item_type_id'] = get_option('wcgo_item_type', '');
+
+			// Does our request
+			$request = wp_remote_get(add_query_arg($body, $this->get_endpoint(false, 'v2').'/jobs/calculate.json'), array(
 				
 				'timeout' => 20,
 				'headers' => array(
@@ -732,6 +741,40 @@
 				throw new Exception('Could not retrieve price');
 				
 			return round(($body['price_cents'] / 100), 2);
+			
+		}
+		
+		/**
+		 * Gets todays datetime.
+		 * 
+		 * @access public
+		 * @return object
+		 */
+		public function today() {
+			
+			return new DateTime('27-04-2018 12:00:00', new DateTimezone($this->get_timezone()));
+			
+		}
+		
+		/**
+		 * Gets the next business day delivery datetime.
+		 * 
+		 * @access public
+		 * @return void
+		 */
+		public function get_next_business_day() {
+			
+			$date = $this->today();
+			$date->modify('+24 hours');
+			
+			// Checks tomorrow is a mon-fri
+			while(date('N', $date->getTimestamp()) >= 6) {
+				
+				$date->modify('+24 hours');
+				
+			}
+				
+			return $date;
 			
 		}
 		

@@ -2,7 +2,7 @@
 /**
 * Our GoFetch Shipping Method Class
 *
-* @version 	1.0.2
+* @version 	1.0.6
 * @since 	1.0
 * @author 	FIVE
 * @package 	GoFetch/Classes
@@ -134,22 +134,75 @@
 			
 			if(!isset($cost)) {
 			
+				// Total weight order
 				$total_weight = 0;
 				
 				// Calculates our order weight
 				foreach($package['contents'] as $item) {
 					
-					$weight = $item['data']->get_weight() == 0 ? 1 : $item['data']->get_weight();
+					// If one or more items do not have weight - use default item type id
+					$weight = $item['data']->get_weight();
 					
-					$total_weight += ($weight * $item['quantity']);
+					if(empty($weight)) {
+						
+						// Set total weight as 0 - get package cost will automatically use default item type id
+						$total_weight = 0;
+						break;
+						
+					} else {
+						
+						$total_weight += ($weight * $item['quantity']);
+						
+					}
 					
 				}
+				
+				// Sets our delivery date time for package cost
+				// Users not allowed to set datetime - calculate next mon-fri 12:00
+				if(get_option('wcgo_enable_delivery_choice') != 'yes') {
+					
+					$deliverby = WCGO()->get_next_business_day()->getTimestamp()*1000;
+					
+				} else {
+					
+					// User is allowed to select delivery date
+					
+					// In case our autobook is not selected we set the delivery by time as 12:00
+					$deliverybytime = get_option('wcgo_autobook') == 'yes' ? get_option('wcgo_autobook_time', '12:00') : '12:00';
+				
+					// Grabs the date selected by the user
+					foreach(WCGO()->get_available_delivery_dates() as $value => $label) {
+						
+						// Selected date by the user
+						if($value == WC()->session->get('wcgo-delivery-date')) {
+							
+							// If its asap
+							if(strpos($value, 'asap') !== false)
+								$deliverby = '';
+							else
+								$deliverby = $value;
+							
+						}
+						
+					}
+					
+					// Ensures deliver by isnt empty
+					if(empty($deliverby))
+						$deliverby = WCGO()->get_next_business_day()->format('Y-m-d');
+					
+					// Appends the time to be delivered by and creates our datetime object
+					$deliverby = new DateTime($deliverby." $deliverybytime:00", new DateTimezone(WCGO()->get_timezone()));
+					$deliverby = $deliverby->format('Y-m-d H:i:s P');
+					
+				}
+				
+				// Delivery by hasn
 				
 				// Calculates our cost
 				try {
 				
 					// Calculates our price base on our distance and our weight
-					$cost = WCGO()->get_package_cost($distance, $total_weight);
+					$cost = WCGO()->get_package_cost($distance, $total_weight, $deliverby);
 					
 					// If we have a price buffer
 					if(get_option('wcgo_price_buffer') && get_option('wcgo_price_buffer') > 0) {
