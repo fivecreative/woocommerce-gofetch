@@ -2,7 +2,7 @@
 /**
 * Our GoFetch Shipping Method Class
 *
-* @version 	1.0.6
+* @version 	1.0.7
 * @since 	1.0
 * @author 	FIVE
 * @package 	GoFetch/Classes
@@ -113,6 +113,16 @@
 		 */
 		public function calculate_shipping($package = array()) {
 			
+			// Rate
+			$rate = array(
+				
+				'id' => $this->get_rate_id(),
+				'label' => $this->title,
+				'cost' => 0,
+				'package' => $package,
+				
+			);
+			
 			// If we can calculate shipping
 			if(!WCGO()->can_calculate_shipping())
 				return;
@@ -123,16 +133,19 @@
 			// Gets the distance between the store and the destination
 			try {
 				
-				$distance = WCGO()->calculate_distance($destination_address);
+				$distance_location = WCGO()->calculate_distance($destination_address);
+				$distance = $distance_location['distance'];
+				$location = $distance_location['location'];
 				
 			} catch(Exception $e) {
 			
 				// Calculates the distance between our pickup address and destination address
 				$cost = get_option('wcgo_price_default');
+				$default_cost = true;
 				
 			}
 			
-			if(!isset($cost)) {
+			if(!isset($default_cost)) {
 			
 				// Total weight order
 				$total_weight = 0;
@@ -161,7 +174,7 @@
 				// Users not allowed to set datetime - calculate next mon-fri 12:00
 				if(get_option('wcgo_enable_delivery_choice') != 'yes') {
 					
-					$deliverby = WCGO()->get_next_business_day()->getTimestamp()*1000;
+					$deliverby = WCGO()->get_next_business_day()->format('Y-m-d H:i:s P');
 					
 				} else {
 					
@@ -169,6 +182,7 @@
 					
 					// In case our autobook is not selected we set the delivery by time as 12:00
 					$deliverybytime = get_option('wcgo_autobook') == 'yes' ? get_option('wcgo_autobook_time', '12:00') : '12:00';
+					$isasap = false;
 				
 					// Grabs the date selected by the user
 					foreach(WCGO()->get_available_delivery_dates() as $value => $label) {
@@ -177,58 +191,70 @@
 						if($value == WC()->session->get('wcgo-delivery-date')) {
 							
 							// If its asap
-							if(strpos($value, 'asap') !== false)
+							if(strpos($value, 'asap') !== false) {
+								
 								$deliverby = '';
-							else
+								$isasap = true;
+								
+							} else {
+								
 								$deliverby = $value;
+								
+							}
 							
 						}
 						
 					}
+
+					// asap deliveries are empty					
+					if(!$isasap) {
 					
-					// Ensures deliver by isnt empty
-					if(empty($deliverby))
-						$deliverby = WCGO()->get_next_business_day()->format('Y-m-d');
+						// Ensures deliver by isnt empty
+						if(empty($deliverby) && !$isasap)
+							$deliverby = WCGO()->get_next_business_day()->format('Y-m-d');
+						
+						// Appends the time to be delivered by and creates our datetime object
+						$deliverby = new DateTime($deliverby." $deliverybytime:00", new DateTimezone(WCGO()->get_timezone()));
+						$deliverby = $deliverby->format('Y-m-d H:i:s P');
 					
-					// Appends the time to be delivered by and creates our datetime object
-					$deliverby = new DateTime($deliverby." $deliverybytime:00", new DateTimezone(WCGO()->get_timezone()));
-					$deliverby = $deliverby->format('Y-m-d H:i:s P');
+					}
+					
 					
 				}
-				
-				// Delivery by hasn
 				
 				// Calculates our cost
 				try {
 				
 					// Calculates our price base on our distance and our weight
-					$cost = WCGO()->get_package_cost($distance, $total_weight, $deliverby);
+					$cost = WCGO()->get_package_cost($distance, $total_weight, $deliverby, array(
+						
+						'postcode' => $package['destination']['postcode'],
+						'suburb_name' => $package['destination']['city'],
+						'lat' => $location['lat'],
+						'lng' => $location['lng'],
+						
+					));
+					
+					$rate['cost'] += $cost;
 					
 					// If we have a price buffer
 					if(get_option('wcgo_price_buffer') && get_option('wcgo_price_buffer') > 0) {
 						
 						$buffer = (get_option('wcgo_price_buffer') / 100) * $cost;
-						$cost += $buffer;
+						$rate['cost'] += $buffer;
 						
 					}
 				
 				} catch(Exception $e) {
 					
-					$cost = get_option('wcgo_price_default');
+					$rate['cost'] = get_option('wcgo_price_default');
 					
 				}
 			
 			}
 			
 			// Adds our rate
-			$this->add_rate(array(
-				
-				'id' => $this->get_rate_id(),
-				'label' => $this->title,
-				'cost' => $cost,
-				'package' => $package,
-				
-			));
+			$this->add_rate($rate);
 			
 		}
 		

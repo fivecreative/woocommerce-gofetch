@@ -2,7 +2,7 @@
 /**
 * WooCommerce GoFetch Integration
 *
-* @version 	1.0.6
+* @version 	1.0.7
 * @since 	1.0
 * @author 	FIVE
 * @package 	GoFetch
@@ -10,7 +10,7 @@
 * Plugin Name: WooCommerce GoFetch
 * Plugin URI: https://fivecreative.com.au/
 * Description: Allows your customers to use gofetch as their delivery option
-* Version: 1.0.6
+* Version: 1.0.7
 * Author: FIVE Creative
 * Author URI: https://fivecreative.com.au
 * Requires at least: 4.8.1
@@ -41,7 +41,7 @@
 	add_action('admin_enqueue_scripts', 'wcgo_admin_enqueue_scripts'); // Enqueues our admin scripts and styles
 	add_action('woocommerce_admin_field_wcgo_map', 'wcgo_admin_page_map', 10, 1); // Adds our map for the pickup address
 	add_action('woocommerce_review_order_after_shipping', 'wcgo_delivery_date'); // If we are enabling the customer to choose their delivery date
-	add_action('woocommerce_checkout_update_order_review', 'wcgo_save_selected_delivery_date', 20, 1); // Ensures we save the users delected delivery day choice
+	add_action('woocommerce_checkout_update_order_review', 'wcgo_save_selected_delivery_date', 10, 1); // Ensures we save the users selected delivery day choice
 	add_action('woocommerce_checkout_create_order', 'wcgo_save_selected_delivery_date_to_order', 10, 2); // Ensures we save our selected delivery date to our order
 	add_action('woocommerce_admin_order_totals_after_shipping', 'wcgo_show_wcgo_delivery_date_on_order_panel', 10, 1); // Shows our order delivery date on our admin panel - edit -order
 	add_action('woocommerce_order_status_processing', 'wcgo_autbook_gofetch_deliveries', 100, 1); // Autobooks our gofetch deliveries if set so
@@ -57,7 +57,8 @@
 	add_filter('woocommerce_checkout_fields', 'wcgo_checkout_fields', 10, 1); // Adds our address search checkout field.
 	add_filter('woocommerce_calculated_total', 'wcgo_add_delivery_surcharge_total', 10, 2); // Adds our delivery date surcharge to the cart total.
 	add_filter('woocommerce_get_order_item_totals', 'wcgo_add_order_totals_row_delivery_date', 10, 3); // Adds our delivery date to our order totals row.
-	add_filter('woocommerce_cart_shipping_packages', 'wcgo_add_delivery_date_to_shipping_packages', 10, 1); // Ensures we include our selected delivery date in oru shipping packages to avoid caching.
+	add_filter('woocommerce_cart_shipping_packages', 'wcgo_add_delivery_date_to_shipping_packages', 100, 1); // Ensures we include our selected delivery date in oru shipping packages to avoid caching.
+	add_filter('woocommerce_checkout_get_value', 'wcgo_address_lookup_default_value', 10, 2); // Ensures that our search field is always empty.
 	
 	
 	
@@ -1004,17 +1005,51 @@
 		$data = array();
 		parse_str($_POST['post_data'], $data);
 		
-		if(empty($data['wcgo-delivery-date']))
+		if(!isset($data['wcgo-delivery-date']) && WC()->session->get('wcgo-delivery-date', false))
+			$deliverydate = WC()->session->get('wcgo-delivery-date', false);
+		elseif(!isset($data['wcgo-delivery-date']) && !WC()->session->get('wcgo-delivery-date', false))
 			return $packages;
+		else
+			$deliverydate = $data['wcgo-delivery-date'];
 			
-		// Appends the delivery date to our package
+		// Saves delivery date to our session
+		foreach(WCGO()->get_available_delivery_dates() as $value => $label) {
+			
+			// If we have matched the selected value
+			if(isset($data['wcgo-delivery-date']) && $deliverydate == $data['wcgo-delivery-date'] && $deliverydate == $value) {
+				
+				// Sets our value
+				WC()->session->set('wcgo-delivery-date', $data['wcgo-delivery-date']);
+				
+			}
+			
+		}
+			
+		// Appends the delivery date to our package so we have a unique rate for eahc day
 		foreach($packages as $i => $package) {
 			
-			$packages[$i]['destination']['wcgo_delivery_date'] = $data['wcgo-delivery-date'];
+			$packages[$i]['destination']['wcgo_delivery_date'] = time().$deliverydate;
 			
 		}
 		
 		return $packages;
+		
+	}
+	
+	/**
+	 * Ensures that our address search field is always empty.
+	 * 
+	 * @access public
+	 * @param mixed $return
+	 * @param mixed $input
+	 * @return void
+	 */
+	function wcgo_address_lookup_default_value($return, $input) {
+		
+		if($input == 'billing_address_search' || $input == 'shipping_address_search')
+			return '';
+			
+		return $return;
 		
 	}
 

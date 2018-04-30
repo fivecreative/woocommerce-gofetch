@@ -99,12 +99,19 @@ jQuery(function() {
 					address += street+' ';
 				
 				// Populates our fields
-				jQuery('#'+field_type+'_address_1').addClass('populated').val(address).trigger('change').parents('p.form-row').addClass('populated');
+				jQuery('#'+field_type+'_address_1').addClass('populated').val(address).parents('p.form-row').addClass('populated');
 				jQuery('#'+field_type+'_address_2').parents('p.form-row').addClass('populated');
-				jQuery('#'+field_type+'_city').addClass('populated').val(suburb).trigger('change').parents('p.form-row').addClass('populated');
-				jQuery('#'+field_type+'_state').addClass('populated').val(state).trigger('change').parents('p.form-row').addClass('populated');
-				jQuery('#'+field_type+'_postcode').addClass('populated').val(postcode).trigger('change').parents('p.form-row').addClass('populated');
-				jQuery('#'+field_type+'_country').addClass('populated').val(country).trigger('change').parents('p.form-row').addClass('populated');
+				jQuery('#'+field_type+'_city').addClass('populated').val(suburb).parents('p.form-row').addClass('populated');
+				jQuery('#'+field_type+'_state').addClass('populated').val(state).parents('p.form-row').addClass('populated');
+				jQuery('#'+field_type+'_postcode').addClass('populated').val(postcode).parents('p.form-row').addClass('populated');
+				jQuery('#'+field_type+'_country').addClass('populated').val(country).parents('p.form-row').addClass('populated');
+				
+				// Triggers our update checkout
+				setTimeout(function() {
+					
+					jQuery(document.body).trigger('update_checkout');
+					
+				});
 				
 				setTimeout(function() {
 					

@@ -2,7 +2,7 @@
 /**
 * WCGO Main class
 *
-* @version 	1.0.6
+* @version 	1.0.7
 * @since 	1.0
 * @author 	FIVE
 * @package 	GoFetch/Classes
@@ -661,8 +661,8 @@
 		public function calculate_distance($address) {
 			
 			// Tries to get from cache
-			if(get_transient('wcgo_dist_'.md5($address)))
-				return get_transient('wcgo_dist_'.md5($address));
+			if(get_transient('wcgo_distlo_'.md5($address)))
+				return get_transient('wcgo_distlo_'.md5($address));
 				
 			// Does our query
 			$request = wp_remote_get(add_query_arg(array(
@@ -682,10 +682,36 @@
 			if(empty($body['rows'][0]['elements'][0]['distance']['value']))
 				throw new Exception('Could not retrieve distance');
 				
-			// Sets our transient
-			set_transient('wcgo_dist_'.md5($address), $body['rows'][0]['elements'][0]['distance']['value'], DAY_IN_SECONDS);
+			$distance = $body['rows'][0]['elements'][0]['distance']['value']; 
 			
-			return $body['rows'][0]['elements'][0]['distance']['value'];
+			// Looks up latitude and longitude for destination address
+			$request = wp_remote_get(add_query_arg(array(
+				
+				'address' => $address,
+				'key' => get_option('wcgo_gmaps_api_key'),
+				
+			), 'https://maps.googleapis.com/maps/api/geocode/json'));
+		
+			// Could not retrieve it
+			if(wp_remote_retrieve_response_code($request) != 200)
+				throw new Exception('Could not retrieve latitude and longitude for address');
+		
+			$body = json_decode(wp_remote_retrieve_body($request), true);
+			
+			if(empty($body['results']) || empty($body['results'][0]['geometry']['location']))
+				throw new Exception('Could not retrieve latitude and longitude for address');
+				
+			$return = array(
+				
+				'distance' => $distance,
+				'location' => $body['results'][0]['geometry']['location'],
+				
+			);
+				
+			// Sets our transient
+			set_transient('wcgo_distlo_'.md5($address), $return, DAY_IN_SECONDS);
+			
+			return $return;
 			
 		}
 		
@@ -697,19 +723,23 @@
 		 * @param int $weight
 		 * @return int
 		 */
-		public function get_package_cost($distance, $weight = 0, $delivery_datetime = '') {
+		public function get_package_cost($distance, $weight = 0, $delivery_datetime = '', $jobdata) {
 			
 			// Builds our request params
 			$body = array(
 				
+				'deliver_by' => urlencode($delivery_datetime),
 				'distance_meters' => $distance,
-				'suburb_name' => $this->get_pickup_suburb(),
-				'postcode' => $this->get_pickup_postcode(),
-				'lat' => $this->get_pickup_lat(),
-				'lon' => $this->get_pickup_lng(),
-				'deliver_by' => $delivery_datetime,
+				'suburb_name' => urlencode($jobdata['suburb_name']),
+				'postcode' => urlencode($jobdata['postcode']),
+				'lat' => $jobdata['lat'],
+				'lon' => $jobdata['lng'],
 				
 			);
+			
+			// Delivery by date
+			if(empty($body['deliver_by']))
+				$body['deliver_by'] = null;
 			
 			// Calculate by weight or item type id
 			if(!empty($weight))
@@ -724,7 +754,7 @@
 				'headers' => array(
 						
 						'X-User-Email' => $this->user,
-						'X-User-Token' => $this->get_session_token(),
+						'X-User-Token' => $this->get_session_token()
 						
 					),
 				
