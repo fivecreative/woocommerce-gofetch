@@ -660,18 +660,6 @@
 					
 					array(
 						
-						'title' => __('Default Price', 'five'),
-						'type' => 'number',
-						'desc' => __('Insert here the default pricing to be used as a fallback whenever the API is unavailable. This price is not affected by the price buffer.', 'five'),
-						'css' => 'width: 250px;',
-						'default' => '15',
-						'id' => 'wcgo_price_default',
-						'desc_tip' => true,
-						
-					),
-					
-					array(
-						
 						'title' => __('Price Buffer', 'five'),
 						'type' => 'number',
 						'desc' => __('Insert here a price buffer for the shipping price calculator, in percentage. For example, to increase the prices returned by 10%, insert 10', 'five'),

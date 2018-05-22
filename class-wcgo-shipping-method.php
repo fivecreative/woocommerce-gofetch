@@ -140,8 +140,7 @@
 			} catch(Exception $e) {
 			
 				// Calculates the distance between our pickup address and destination address
-				$cost = get_option('wcgo_price_default');
-				$default_cost = true;
+				return false;
 				
 			}
 			
@@ -247,11 +246,14 @@
 				
 				} catch(Exception $e) {
 					
-					$rate['cost'] = get_option('wcgo_price_default');
+					return false;
 					
 				}
 			
 			}
+			
+			if($rate['cost'] == 0)
+				return false;
 			
 			// Adds our rate
 			$this->add_rate($rate);
