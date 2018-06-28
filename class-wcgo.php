@@ -2,7 +2,7 @@
 /**
 * WCGO Main class
 *
-* @version 	1.0.7
+* @version 	1.0.9
 * @since 	1.0
 * @author 	FIVE
 * @package 	GoFetch/Classes
@@ -782,7 +782,7 @@
 		 */
 		public function today() {
 			
-			return new DateTime('27-04-2018 12:00:00', new DateTimezone($this->get_timezone()));
+			return new DateTime('now', new DateTimezone($this->get_timezone()));
 			
 		}
 		
