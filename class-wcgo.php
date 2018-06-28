@@ -2,7 +2,7 @@
 /**
 * WCGO Main class
 *
-* @version 	1.0.9
+* @version 	1.0.9.1
 * @since 	1.0
 * @author 	FIVE
 * @package 	GoFetch/Classes
@@ -888,9 +888,11 @@
 						try {
 							
 							$cutoff = new DateTime($today->format('Y-m-d '.get_option('wcgo_same_day_delivery_cutoff').':00'), new DateTimezone($this->get_timezone()));
+							$today60 = $this->today();
+							$today60->modify('+65 minutes');
 							
 							// If our cutoff is in the future
-							if($cutoff->getTimestamp() > $today->getTimestamp()) {
+							if($cutoff->getTimestamp() > $today60->getTimestamp()) {
 								
 								// Checks if we have an extra fee for this
 								if(get_option('wcgo_same_day_delivery_surcharge') != '' && get_option('wcgo_same_day_delivery_surcharge') > 0)
